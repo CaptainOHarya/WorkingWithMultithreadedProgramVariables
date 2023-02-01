@@ -12,64 +12,78 @@ public class MainNickname {
     static AtomicInteger counter2 = new AtomicInteger();
     static AtomicInteger counter3 = new AtomicInteger();
     static int numberOfWords = 100_000;
-    //static int numberOfWords = 10;
 
     public static void main(String[] args) throws InterruptedException {
-        Thread threadThreeLetters;
-        Thread threadFourLetters;
-        Thread threadFiveLetters;
+        Thread threadPalindrome;
+        Thread threadSameLetters;
+        Thread threadLettersAscendingOrder;
 
         // generate 100_000 short words
         Random random = new Random();
         String[] texts = new String[numberOfWords];
         for (int i = 0; i < texts.length; i++) {
             texts[i] = generateText("abc", 3 + random.nextInt(3));
+
         }
 
-        threadThreeLetters = new Thread(() -> {
-            counter1 = count(texts, 3);
-        });
-        threadFourLetters = new Thread(() -> {
-            counter2 = count(texts, 4);
-        });
-        threadFiveLetters = new Thread(() -> {
-            counter3 = count(texts, 5);
+        // First thread checks if the word is a palindrome
+        threadPalindrome = new Thread(() -> {
+            for (String text : texts) {
+                if (isPalindrome(text)) {
+                    count(text);
+                }
+            }
+
         });
 
-        threadThreeLetters.start();
-        threadFourLetters.start();
-        threadFiveLetters.start();
+        // Second thread checks that all letters in the word are the same
+        threadSameLetters = new Thread(() -> {
+            for (String text : texts) {
+                if (checkAllRepeated(text)) {
+                    count(text);
+                }
+            }
+        });
 
-        threadThreeLetters.join();
-        threadFourLetters.join();
-        threadFiveLetters.join();
+        // Third thread checks letters in ascending order
+        threadLettersAscendingOrder = new Thread(() -> {
+            for (String text : texts) {
+                if (isAscendingOrdering(text)) {
+                    count(text);
+                }
+            }
+        });
+
+        threadPalindrome.start();
+        threadSameLetters.start();
+        threadLettersAscendingOrder.start();
+
+        threadPalindrome.join();
+        threadSameLetters.join();
+        threadLettersAscendingOrder.join();
 
         System.out.println("Красивых слов с длиной 3: " + counter1 + " шт");
         System.out.println("Красивых слов с длиной 4: " + counter2 + " шт");
         System.out.println("Красивых слов с длиной 5: " + counter3 + " шт");
         System.out.println("Main ends!!!");
+
     }
 
-    public static AtomicInteger count(String texts[], int number) {
-        AtomicInteger counter = new AtomicInteger();
-        for (String text : texts) {
-            if (text.length() == number) {
+    public static void count(String text) {
 
-                if (isPalindrome(text)) {
-                    counter.incrementAndGet();
-                }
-                if (checkAllRepeated(text)) {
-                    counter.incrementAndGet();
-                }
-                if (isAscendingOrdering(text)) {
-                    counter.incrementAndGet();
-                }
-            }
+        if (text.length() == 3) {
+            counter1.incrementAndGet();
         }
-        return counter;
+        if (text.length() == 4) {
+            counter2.incrementAndGet();
+        }
+        if (text.length() == 5) {
+            counter3.incrementAndGet();
+        }
+
     }
 
-    // is the word a palindrome
+    // is the word is a palindrome
     public static boolean isPalindrome(String text) {
         StringBuilder plain = new StringBuilder(text);
         StringBuilder reverse = plain.reverse();
